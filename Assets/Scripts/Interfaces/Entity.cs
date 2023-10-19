@@ -21,14 +21,14 @@ public abstract class Entity : MonoBehaviour{
     public abstract void RestoreStamina(int amount);
     public override string ToString(){
         string healthstr = health.ToString() + "/" + maxHealth.ToString() + " hp\n";
-        string staminastr = stamina.ToString() + "/" + maxStamina.ToString() + " mp\n";
-        string manastr = mana.ToString() + "/" + maxMana.ToString() + " sp\n";
+        string staminastr = stamina.ToString() + "/" + maxStamina.ToString() + " sp\n";
+        string manastr = mana.ToString() + "/" + maxMana.ToString() + " mp\n";
         return healthstr + staminastr + manastr;
     }
     public virtual string ToString(string str){
         string healthstr = health.ToString() + "/" + maxHealth.ToString() + " hp\n";
-        string staminastr = stamina.ToString() + "/" + maxStamina.ToString() + " mp\n";
-        string manastr = mana.ToString() + "/" + maxMana.ToString() + " sp\n";
+        string staminastr = stamina.ToString() + "/" + maxStamina.ToString() + " sp\n";
+        string manastr = mana.ToString() + "/" + maxMana.ToString() + " mp\n";
         return str + healthstr + staminastr + manastr;
     }
 }

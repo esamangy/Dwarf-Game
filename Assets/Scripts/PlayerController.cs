@@ -25,7 +25,8 @@ public class PlayerController : Entity{
     [SerializeField] private float sprintModifier;
     [SerializeField] private float sprintStaminaDrainDuration;
     [SerializeField] private int sprintStaminaDrainAmount;
-    [SerializeField] private float staminaRegenDuration;
+    [Tooltip("The amount of stamina regained per second")]
+    [SerializeField] private float staminaRegenspeed;
     [SerializeField] private float staminaRegenDelay;
     [SerializeField] private int staminaRegenAmount;
     private float timeUntilNextStaminaRegen;
@@ -44,9 +45,10 @@ public class PlayerController : Entity{
         
     }
 
-    void FixedUpdate(){
-        Movement();
+    void Update(){
+        updateSprint();
         updateStamina();
+        Movement();
     }
 
     private void Movement(){
@@ -61,9 +63,9 @@ public class PlayerController : Entity{
         controller.Move(moveDir * Time.deltaTime);
         body.transform.position = controller.transform.position;
 
-        if(controller.isGrounded){
-            moveVal.z = 0;
-        }
+        // if(controller.isGrounded){
+        //     moveVal.z = 0;
+        // }
     }
 
     private void updateStamina(){
@@ -71,13 +73,33 @@ public class PlayerController : Entity{
             if(timeSprinting <= 0){
                 SpendStamina(sprintStaminaDrainAmount);
                 timeSprinting = sprintStaminaDrainDuration;
+            } else {
+                timeSprinting -= Time.deltaTime;
+            }
+        }
+
+        if(this.stamina == this.maxStamina){
+            return;
+        }
+
+        if((Time.time - lastStaminaUse) >= staminaRegenDelay){
+            if(timeUntilNextStaminaRegen <= 0){
+                RestoreStamina(staminaRegenAmount);
+                timeUntilNextStaminaRegen = (.1000f / staminaRegenspeed);
+            } else {
+                timeUntilNextStaminaRegen -= Time.deltaTime;
             }
         }
         
+    }
+
+    private void updateSprint(){
         if(isSprinting){
-            timeSprinting -= Time.deltaTime;
+            if(this.stamina < sprintStaminaDrainAmount){
+                isSprinting = false;
+                moveSpeed /= sprintModifier;
+            }
         }
-        timeUntilNextStaminaRegen -= Time.deltaTime;
     }
 
     private void OnMove(InputValue value){
@@ -104,19 +126,17 @@ public class PlayerController : Entity{
         Physics.Raycast(bottom, Vector3.down, out hit, Mathf.Infinity);
         if(hit.distance <= .001){
             moveVal.z = jumpHeight;
+            SpendStamina(jumpStaminaDrainAmount);
         }
-        SpendStamina(jumpStaminaDrainAmount);
     }
-    private void sprint(){
-    }
+    
     private void OnSprint(InputValue value){
-        if(value.isPressed && this.stamina > sprintStaminaDrainAmount){
-            moveSpeed *= sprintModifier;
-            isSprinting = true;
-        } else if(!value.isPressed) {
+        if(!value.isPressed && isSprinting){
             moveSpeed /= sprintModifier;
-            isSprinting = false;
+        } else if(value.isPressed && !isSprinting) {
+            moveSpeed *= sprintModifier;
         }
+        isSprinting = value.isPressed;
     }
 
     private void OnFire(InputValue value){
