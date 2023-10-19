@@ -915,7 +915,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   health: 85
   maxHealth: 100
-  mana: 25
+  mana: 5
   maxMana: 25
   stamina: 5
   maxStamina: 100
@@ -930,10 +930,12 @@ MonoBehaviour:
   sprintStaminaDrainDuration: 1
   sprintStaminaDrainAmount: 1
   staminaRegenspeed: 5
-  staminaRegenDelay: 10000
+  staminaRegenDelay: 5
   staminaRegenAmount: 1
   jumpHeight: 4.6
   jumpStaminaDrainAmount: 15
+  manaRegenspeed: 0.1
+  manaRegenDelay: 5
 --- !u!143 &1192534072
 CharacterController:
   m_ObjectHideFlags: 0

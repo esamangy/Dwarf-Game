@@ -9,7 +9,7 @@ public class PlayerController : Entity{
     [Header("References")]
     [SerializeField] private GameObject body;
     private CharacterController controller;
-    //--------------------------------------
+    //Camera--------------------------------
     [Header("Camera")]
     [SerializeField] private Camera mainCam;
     [SerializeField] private CinemachineFreeLook cinemachineCam;
@@ -35,7 +35,13 @@ public class PlayerController : Entity{
     private float gravity = -9.8f;
     [SerializeField] private float jumpHeight;
     [SerializeField] private int jumpStaminaDrainAmount;
-    //--------------------------------------
+    //Mana----------------------------------
+    [Header("Mana")]
+    [Tooltip("The amount of stamina regained per second")]
+    [SerializeField] private float manaRegenspeed;
+    [SerializeField] private float manaRegenDelay;
+    private float lastManaUse;
+    
 
     void Awake(){
         Cursor.lockState = CursorLockMode.Locked;
@@ -49,11 +55,14 @@ public class PlayerController : Entity{
         updateSprint();
         updateStamina();
         Movement();
+        updateMana();
     }
 
     private void Movement(){
         if(!controller.isGrounded){
             moveVal.z = moveVal.z + (gravity * Time.deltaTime);
+        } else {
+            moveVal.z = 0;
         }
         Quaternion orientation = mainCam.transform.rotation;
         Quaternion target = Quaternion.Euler(0, orientation.eulerAngles.y, 0);
@@ -62,10 +71,6 @@ public class PlayerController : Entity{
         Vector3 moveDir = body.transform.forward * moveVal.y * moveSpeed + body.transform.right * moveVal.x  * moveSpeed+ body.transform.up * moveVal.z;
         controller.Move(moveDir * Time.deltaTime);
         body.transform.position = controller.transform.position;
-
-        // if(controller.isGrounded){
-        //     moveVal.z = 0;
-        // }
     }
 
     private void updateStamina(){
@@ -143,6 +148,12 @@ public class PlayerController : Entity{
         Debug.Log(this.ToString());
     }
 
+    private void updateMana(){
+        if((Time.time - lastManaUse) >= manaRegenDelay){
+            RestoreMana(manaRegenspeed * Time.deltaTime);
+        }
+    }
+
     //entity implementation
     public override void Hurt(int damage){
         health -= damage;
@@ -153,10 +164,11 @@ public class PlayerController : Entity{
             this.health = maxHealth;
         }
     }
-    public override void SpendMana(int amount){
+    public override void SpendMana(float amount){
+        lastManaUse = Time.time;
         this.mana -= amount;
     }
-    public override void RestoreMana(int amount){
+    public override void RestoreMana(float amount){
         this.mana += amount;
         if(this.mana > maxMana){
             this.mana = maxMana;

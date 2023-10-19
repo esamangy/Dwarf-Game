@@ -7,16 +7,16 @@ public abstract class Entity : MonoBehaviour{
     [Header("Stats")]
     [SerializeField] protected int health;
     [SerializeField] protected int maxHealth;
-    [SerializeField] protected int mana;
-    [SerializeField] protected int maxMana;
+    [SerializeField] protected float mana;
+    [SerializeField] protected float maxMana;
     [SerializeField] protected int stamina;
     [SerializeField] protected int maxStamina;
     //--------------------------------------
 
     public abstract void Hurt(int damange);
     public abstract void Heal(int amount);
-    public abstract void SpendMana(int amount);
-    public abstract void RestoreMana(int amount);
+    public abstract void SpendMana(float amount);
+    public abstract void RestoreMana(float amount);
     public abstract void SpendStamina(int amount);
     public abstract void RestoreStamina(int amount);
     public override string ToString(){
