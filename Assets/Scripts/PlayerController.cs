@@ -61,8 +61,6 @@ public class PlayerController : Entity{
     private void Movement(){
         if(!controller.isGrounded){
             moveVal.z = moveVal.z + (gravity * Time.deltaTime);
-        } else {
-            moveVal.z = 0;
         }
         Quaternion orientation = mainCam.transform.rotation;
         Quaternion target = Quaternion.Euler(0, orientation.eulerAngles.y, 0);
@@ -71,6 +69,10 @@ public class PlayerController : Entity{
         Vector3 moveDir = body.transform.forward * moveVal.y * moveSpeed + body.transform.right * moveVal.x  * moveSpeed+ body.transform.up * moveVal.z;
         controller.Move(moveDir * Time.deltaTime);
         body.transform.position = controller.transform.position;
+
+        if(controller.isGrounded){
+            moveVal.z = 0;
+        }
     }
 
     private void updateStamina(){
@@ -126,12 +128,19 @@ public class PlayerController : Entity{
         if(this.stamina < jumpStaminaDrainAmount){
             return;
         }
-        RaycastHit hit;
+        RaycastHit[] hits = new RaycastHit[5];
         Vector3 bottom = new Vector3(transform.position.x, transform.position.y - (controller.height / 2), transform.position.z);
-        Physics.Raycast(bottom, Vector3.down, out hit, Mathf.Infinity);
-        if(hit.distance <= .001){
-            moveVal.z = jumpHeight;
-            SpendStamina(jumpStaminaDrainAmount);
+        Physics.Raycast(bottom, Vector3.down, out hits[0], Mathf.Infinity);
+        Physics.Raycast(bottom + new Vector3(.5f, controller.stepOffset ,0f), Vector3.down, out hits[1], Mathf.Infinity);
+        Physics.Raycast(bottom + new Vector3(-.5f,controller.stepOffset,0f), Vector3.down, out hits[2], Mathf.Infinity);
+        Physics.Raycast(bottom + new Vector3(0f,controller.stepOffset,.5f), Vector3.down, out hits[3], Mathf.Infinity);
+        Physics.Raycast(bottom + new Vector3(0f,controller.stepOffset,-.5f), Vector3.down, out hits[4], Mathf.Infinity);
+        for(int i = 0; i < hits.Length; i ++){
+            if(hits[i].distance - controller.stepOffset <= .1f){
+                Debug.Log("jump");
+                moveVal.z = jumpHeight;
+                SpendStamina(jumpStaminaDrainAmount);
+            }
         }
     }
     

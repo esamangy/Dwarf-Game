@@ -20,15 +20,11 @@ public abstract class Entity : MonoBehaviour{
     public abstract void SpendStamina(int amount);
     public abstract void RestoreStamina(int amount);
     public override string ToString(){
-        string healthstr = health.ToString() + "/" + maxHealth.ToString() + " hp\n";
-        string staminastr = stamina.ToString() + "/" + maxStamina.ToString() + " sp\n";
-        string manastr = mana.ToString() + "/" + maxMana.ToString() + " mp\n";
-        return healthstr + staminastr + manastr;
+        string end = string.Format("{1}/{2} hp\n{3}/{4} sp\n{5:0.##}/{6} mp\n", health, maxHealth, stamina, maxStamina, mana, maxMana);
+        return end;
     }
     public virtual string ToString(string str){
-        string healthstr = health.ToString() + "/" + maxHealth.ToString() + " hp\n";
-        string staminastr = stamina.ToString() + "/" + maxStamina.ToString() + " sp\n";
-        string manastr = mana.ToString() + "/" + maxMana.ToString() + " mp\n";
-        return str + healthstr + staminastr + manastr;
+        string end = string.Format("{0}{1}/{2} hp\n{3}/{4} sp\n{5:0.##}/{6} mp\n", str, health, maxHealth, stamina, maxStamina, mana, maxMana);
+        return end;
     }
 }
