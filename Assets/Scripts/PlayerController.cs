@@ -41,6 +41,9 @@ public class PlayerController : Entity{
     [SerializeField] private float manaRegenspeed;
     [SerializeField] private float manaRegenDelay;
     private float lastManaUse;
+    //Mana----------------------------------
+    [Header("Gameplay")]
+    [SerializeField] private float reachDistance;
     
 
     void Awake(){
@@ -56,6 +59,7 @@ public class PlayerController : Entity{
         updateStamina();
         Movement();
         updateMana();
+        checkForInteractabes();
     }
 
     private void Movement(){
@@ -154,12 +158,45 @@ public class PlayerController : Entity{
     }
 
     private void OnFire(InputValue value){
-        Debug.Log(this.ToString());
+        //Debug.Log(this.ToString());
     }
 
     private void updateMana(){
         if((Time.time - lastManaUse) >= manaRegenDelay){
             RestoreMana(manaRegenspeed * Time.deltaTime);
+        }
+    }
+
+    private void OnInteract(){
+        RaycastHit hit = drayRayToMiddleOfScreen();
+        if(hit.collider){
+            if(!hit.collider.GetComponent<Interactable>()){
+                return;
+            }
+            if(Vector3.Distance(hit.collider.transform.position, this.transform.position) <= reachDistance){
+                hit.collider.gameObject.GetComponent<Interactable>().interact();
+            }
+        }
+    }
+
+    private RaycastHit drayRayToMiddleOfScreen(){
+        Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
+        int layerMask = 1 << 3;
+        layerMask = ~layerMask;
+        RaycastHit hit;
+        Physics.Raycast(ray, out hit, Mathf.Infinity, layerMask);
+        return hit;
+    }
+
+    private void checkForInteractabes(){
+        RaycastHit hit = drayRayToMiddleOfScreen();
+        if(hit.collider){
+            if(!hit.collider.GetComponent<Interactable>()){
+                return;
+            }
+            if(Vector3.Distance(hit.collider.transform.position, this.transform.position) <= reachDistance){
+                hit.collider.gameObject.GetComponent<Interactable>().Highlight();
+            }
         }
     }
 
