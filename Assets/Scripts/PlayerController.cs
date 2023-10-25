@@ -9,6 +9,7 @@ public class PlayerController : Entity{
     [Header("References")]
     [SerializeField] private GameObject body;
     private CharacterController controller;
+    [SerializeField] private PlayerInventory inventory;
     //Camera--------------------------------
     [Header("Camera")]
     [SerializeField] private Camera mainCam;
@@ -157,8 +158,11 @@ public class PlayerController : Entity{
         isSprinting = value.isPressed;
     }
 
-    private void OnFire(InputValue value){
-        //Debug.Log(this.ToString());
+    private void OnPrimary(InputValue value){
+        Debug.Log("Primary");
+    }
+    private void OnSecondary(InputValue value){
+        Debug.Log("Secondary");
     }
 
     private void updateMana(){
