@@ -2,7 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class Weapon : Item{
+[CreateAssetMenu]
+public class Weapon : Item{
     protected ItemType _Weapon;
     public enum ArmorType{
         Helmet,
@@ -19,6 +20,10 @@ public abstract class Weapon : Item{
     [SerializeField] protected int damage;
     [SerializeField] protected float reach;
 
-    protected abstract void Primary();
-    protected abstract void Secondary();
+    protected void Primary(){
+        //do stuff here
+    }
+    protected void Secondary(){
+        //do stuff here
+    }
 }

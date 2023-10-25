@@ -2,7 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class Armor : Item{
+[CreateAssetMenu]
+public class Armor : Item{
     protected ItemType _Armor;
     public enum ArmorType{
         Helmet,
@@ -14,11 +15,12 @@ public abstract class Armor : Item{
     }
 
     [Header("Resistances and weaknesses")]
-    [SerializeField] protected StrengthAndWeakness.DamageType DResistance;
-    [SerializeField] protected StrengthAndWeakness.DamageType DWeakness;
-    [SerializeField] protected StrengthAndWeakness.ElementalType EResistance;
-    [SerializeField] protected StrengthAndWeakness.ElementalType Wweakness;
+    [SerializeField] protected StrengthAndWeakness.DamageType DamageResistance;
+    [SerializeField] protected StrengthAndWeakness.DamageType DamageWeakness;
+    [SerializeField] protected StrengthAndWeakness.ElementalType ElementalResistance;
+    [SerializeField] protected StrengthAndWeakness.ElementalType Elemetalweakness;
 
+    [Range(0,1)]
     [SerializeField] protected float armorPercent;
     [SerializeField] protected float armorWeight;
 
