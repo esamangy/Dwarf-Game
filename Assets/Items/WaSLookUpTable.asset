@@ -9,10 +9,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: db4d50c39277cfb488997057f8c70d52, type: 3}
-  m_Name: testweapon
+  m_Script: {fileID: 11500000, guid: ed8d17721de0fd544ae3a627f2a10400, type: 3}
+  m_Name: WaSLookUpTable
   m_EditorClassIdentifier: 
-  ElementalEffect: 1
-  damageType: 1
-  damage: 10
-  reach: 1

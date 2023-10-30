@@ -2,7 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class StrengthAndWeakness : MonoBehaviour{
+[CreateAssetMenu]
+public class StrengthAndWeakness : ScriptableObject{
     public enum ElementalType{
         none,
         Fire,
@@ -20,4 +21,6 @@ public class StrengthAndWeakness : MonoBehaviour{
         Magical,
         Psionic
     }
+
+    
 }

@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b8b4468cd5822b47b996180ab042d4d, type: 3}
   m_Name: testArmor
   m_EditorClassIdentifier: 
-  DResistance: 0
-  DWeakness: 0
-  EResistance: 0
-  Wweakness: 0
-  armorPercent: 0
-  armorWeight: 0
+  DamageResistance: 0
+  DamageWeakness: 0
+  ElementalResistance: 1
+  Elemetalweakness: 1
+  armorPercent: 0.484
+  armorWeight: 1

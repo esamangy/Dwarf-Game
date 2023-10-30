@@ -12,3 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bda25c10e37a7ac42a4c34168493a7f4, type: 3}
   m_Name: testbackpack
   m_EditorClassIdentifier: 
+  weightReduction: 0.179
