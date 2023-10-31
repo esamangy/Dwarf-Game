@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 91c4fddcf265b0d48b1b0e131ac146a7
+guid: 40e713dd081b0af4a8c14e7445e2405b
 ModelImporter:
   serializedVersion: 21300
   internalIDToNameTable: []
@@ -7,23 +7,28 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Blade
-    second: {fileID: 2100000, guid: 1137e897f656bce4ebf04e1de1e6d1ec, type: 2}
+      name: Gold
+    second: {fileID: 2100000, guid: 5d2bee3d613fb254db4f2ea12eb8643b, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: guard
-    second: {fileID: 2100000, guid: 82b2e6fc9a2e0ba44846dff59562b39a, type: 2}
+      name: Handle
+    second: {fileID: 2100000, guid: 61ea0ae228eb26b448f6dbfae3dab380, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Stone
+    second: {fileID: 2100000, guid: 50592ad05f28f7e48af4e7240847a952, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: pommel
-    second: {fileID: 2100000, guid: cc9e0ac93e8ce5f4990d4e70fb5a98f2, type: 2}
+    second: {fileID: 2100000, guid: 2b9d6cc4d3a52db4bbc7e95975e8fefd, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: rubber
-    second: {fileID: 2100000, guid: 72ce64421f96216439393f627f29d3c6, type: 2}
+    second: {fileID: 2100000, guid: f2d16881f1cdb8f4280c9ac6e966642a, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
