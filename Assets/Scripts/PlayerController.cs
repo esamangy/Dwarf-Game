@@ -47,12 +47,12 @@ public class PlayerController : Entity{
     [SerializeField] private float reachDistance;
     
 
-    void Awake(){
+    public override void Awake(){
+        base.Awake();
         Cursor.lockState = CursorLockMode.Locked;
     }
     void Start(){
         controller = GetComponent<CharacterController>();
-        
     }
 
     void Update(){

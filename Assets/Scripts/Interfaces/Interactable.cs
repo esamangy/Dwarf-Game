@@ -1,19 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
+[RequireComponent(typeof(Outline))]
 public abstract class Interactable : MonoBehaviour{
     private Outline outline;
+    [SerializeField] protected string hoverText;
     private bool highlight = false;
     public abstract void interact();
+    private GameObject hoverTextObject;
 
     public virtual void Awake(){
         outline = GetComponent<Outline>();
         if(!outline){
-            this.AddComponent<Outline>();
+            gameObject.AddComponent<Outline>();
         }
         outline.enabled = false;
+        hoverTextObject = GameObject.Find("Interact Hover");
     }
 
     public virtual void Update(){
@@ -23,5 +26,6 @@ public abstract class Interactable : MonoBehaviour{
 
     public virtual void Highlight(){
         highlight = true;
+        hoverTextObject.GetComponent<HoverTextController>().UpdateText(hoverText);
     }
 }

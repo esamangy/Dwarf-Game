@@ -2,9 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu]
 public class Weapon : Item{
-    protected ItemType _Weapon;
     public enum ArmorType{
         Helmet,
         Gauntlets,
@@ -14,7 +12,7 @@ public class Weapon : Item{
         Amulet,
     }
     [Header("Effect Types")]
-    [SerializeField] protected StrengthAndWeakness.ElementalType ElementalEffect;
+    //[SerializeField] protected StrengthAndWeakness.ElementalType ElementalEffect;
     [SerializeField] protected StrengthAndWeakness.DamageType damageType;
 
     [SerializeField] protected int damage;
