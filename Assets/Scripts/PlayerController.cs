@@ -34,8 +34,10 @@ public class PlayerController : Entity{
     private float lastStaminaUse;
     private float timeSprinting;
     private float gravity = -9.8f;
-    [SerializeField] private float jumpHeight;
-    [SerializeField] private int jumpStaminaDrainAmount;
+    [SerializeField] private float DashCooldownTime;
+    private float curDashTime = 0;
+    [SerializeField] private float DashDistance;
+    [SerializeField] private int DashStaminaUse;
     //Mana----------------------------------
     [Header("Mana")]
     [Tooltip("The amount of stamina regained per second")]
@@ -77,6 +79,11 @@ public class PlayerController : Entity{
 
         if(controller.isGrounded){
             moveVal.z = 0;
+        }
+
+        curDashTime -= Time.deltaTime;
+        if(curDashTime < 0){
+            curDashTime = 0;
         }
     }
 
@@ -129,24 +136,17 @@ public class PlayerController : Entity{
 
     }
 
-    private void OnJump(InputValue value){
-        if(this.stamina < jumpStaminaDrainAmount){
+    private void OnDash(InputValue value){
+        if(curDashTime != 0){
             return;
         }
-        RaycastHit[] hits = new RaycastHit[5];
-        Vector3 bottom = new Vector3(transform.position.x, transform.position.y - (controller.height / 2), transform.position.z);
-        Physics.Raycast(bottom, Vector3.down, out hits[0], Mathf.Infinity);
-        Physics.Raycast(bottom + new Vector3(.5f, controller.stepOffset ,0f), Vector3.down, out hits[1], Mathf.Infinity);
-        Physics.Raycast(bottom + new Vector3(-.5f,controller.stepOffset,0f), Vector3.down, out hits[2], Mathf.Infinity);
-        Physics.Raycast(bottom + new Vector3(0f,controller.stepOffset,.5f), Vector3.down, out hits[3], Mathf.Infinity);
-        Physics.Raycast(bottom + new Vector3(0f,controller.stepOffset,-.5f), Vector3.down, out hits[4], Mathf.Infinity);
-        for(int i = 0; i < hits.Length; i ++){
-            if(hits[i].distance - controller.stepOffset <= .1f){
-                Debug.Log("jump");
-                moveVal.z = jumpHeight;
-                SpendStamina(jumpStaminaDrainAmount);
-            }
+        if(stamina < DashStaminaUse){
+            return;
         }
+        Vector3 moveDir = body.transform.forward * moveVal.y * DashDistance + body.transform.right * moveVal.x  * DashDistance + body.transform.up * moveVal.z;
+        controller.Move(moveDir);
+        curDashTime = DashCooldownTime;
+        SpendStamina(DashStaminaUse);
     }
     
     private void OnSprint(InputValue value){
