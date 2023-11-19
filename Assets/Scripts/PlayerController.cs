@@ -81,28 +81,16 @@ public class PlayerController : Entity{
         } else {
             targetMove.x = moveLerp(targetMove.x, -curMaxSpeed);
         }
-        //Debug.Log(moveVal.y);
         if(moveVal.y == 0){
             targetMove.z = moveLerp(targetMove.z, 0f);
         } else  if(moveVal.y > 0){
             targetMove.z = moveLerp(targetMove.z, curMaxSpeed);
         } else {
             targetMove.z = moveLerp(targetMove.z, -curMaxSpeed);
-        }
-        Debug.Log(controller.velocity.z);
-        // if(controller.velocity.x == 0){
-        //     targetMove.x = 0;
-        // }
-        // if(moveVal.y == 0){
-        //     targetMove.y = Mathf.Clamp(targetMove.z + (targetMove.z * decelSpeed * Time.deltaTime), -curMaxSpeed.y, curMaxSpeed.y);
-        // } else {
-        //     targetMove.y = Mathf.Clamp(targetMove.z + (targetMove.z * decelSpeed * Time.deltaTime), -curMaxSpeed.y, curMaxSpeed.y);
-        // }
-        
+        }  
          
-
-        //Vector3 moveDir = body.transform.forward * moveVal.y * regularMoveSpeed + body.transform.right * moveVal.x  * regularMoveSpeed + body.transform.up * moveVal.z;
-        controller.Move(targetMove * Time.deltaTime);
+        Vector3 moveDir = body.transform.forward * targetMove.z + body.transform.right * targetMove.x + body.transform.up * targetMove.y;
+        controller.Move(moveDir * Time.deltaTime);
         body.transform.position = controller.transform.position;
     }
 
@@ -179,10 +167,13 @@ public class PlayerController : Entity{
     }
 
     private void OnDash(InputValue value){
-        if(lastDash - Time.time < DashCooldownTime){
+        if(Time.time - lastDash < DashCooldownTime){
+            Debug.Log(Time.time - lastDash);
+            Debug.Log("too soon to dash");
             return;
         }
         if(stamina < DashStaminaUse){
+            Debug.Log("not enough stamina to dash");
             return;
         }
         Vector3 moveDir = body.transform.forward * moveVal.y * DashDistance + body.transform.right * moveVal.x  * DashDistance + body.transform.up * targetMove.y;
