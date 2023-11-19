@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Cinemachine;
-using Unity.VisualScripting;
 using System;
 
 public class PlayerController : Entity{
@@ -20,8 +19,12 @@ public class PlayerController : Entity{
     [SerializeField] private Vector2 minAndMaxZoom;
     //Movement------------------------------
     [Header("Movement")]
-    [SerializeField] private float moveSpeed;
-    private Vector3 moveVal;
+    [SerializeField] private float regularMoveSpeed;
+    [SerializeField] private float accelSpeed;
+    [SerializeField] private float decelSpeed;
+    private float curMaxSpeed;
+    private Vector3 targetMove;
+    private Vector2 moveVal;
     private bool isSprinting = false;
     [SerializeField] private float sprintModifier;
     [SerializeField] private float sprintStaminaDrainDuration;
@@ -35,12 +38,12 @@ public class PlayerController : Entity{
     private float timeSprinting;
     private float gravity = -9.8f;
     [SerializeField] private float DashCooldownTime;
-    private float curDashTime = 0;
+    private float lastDash;
     [SerializeField] private float DashDistance;
     [SerializeField] private int DashStaminaUse;
     //Mana----------------------------------
     [Header("Mana")]
-    [Tooltip("The amount of stamina regained per second")]
+    [Tooltip("The amount of mana regained per second")]
     [SerializeField] private float manaRegenspeed;
     [SerializeField] private float manaRegenDelay;
     private float lastManaUse;
@@ -52,6 +55,9 @@ public class PlayerController : Entity{
     public override void Awake(){
         base.Awake();
         Cursor.lockState = CursorLockMode.Locked;
+        targetMove = new Vector3();
+        lastDash = Time.time;
+        curMaxSpeed = regularMoveSpeed;
     }
     void Start(){
         controller = GetComponent<CharacterController>();
@@ -66,25 +72,61 @@ public class PlayerController : Entity{
     }
 
     private void Movement(){
-        if(!controller.isGrounded){
-            moveVal.z = moveVal.z + (gravity * Time.deltaTime);
+        updateRotation();
+        checkGravity();
+        if(moveVal.x == 0){
+            targetMove.x = moveLerp(targetMove.x, 0f);
+        } else  if(moveVal.x > 0){
+            targetMove.x = moveLerp(targetMove.x, curMaxSpeed);
+        } else {
+            targetMove.x = moveLerp(targetMove.x, -curMaxSpeed);
         }
+        //Debug.Log(moveVal.y);
+        if(moveVal.y == 0){
+            targetMove.z = moveLerp(targetMove.z, 0f);
+        } else  if(moveVal.y > 0){
+            targetMove.z = moveLerp(targetMove.z, curMaxSpeed);
+        } else {
+            targetMove.z = moveLerp(targetMove.z, -curMaxSpeed);
+        }
+        Debug.Log(controller.velocity.z);
+        // if(controller.velocity.x == 0){
+        //     targetMove.x = 0;
+        // }
+        // if(moveVal.y == 0){
+        //     targetMove.y = Mathf.Clamp(targetMove.z + (targetMove.z * decelSpeed * Time.deltaTime), -curMaxSpeed.y, curMaxSpeed.y);
+        // } else {
+        //     targetMove.y = Mathf.Clamp(targetMove.z + (targetMove.z * decelSpeed * Time.deltaTime), -curMaxSpeed.y, curMaxSpeed.y);
+        // }
+        
+         
+
+        //Vector3 moveDir = body.transform.forward * moveVal.y * regularMoveSpeed + body.transform.right * moveVal.x  * regularMoveSpeed + body.transform.up * moveVal.z;
+        controller.Move(targetMove * Time.deltaTime);
+        body.transform.position = controller.transform.position;
+    }
+
+    private float moveLerp(float curSpeed, float targetSpeed){
+        float toReturn = curSpeed;
+        if(curSpeed < targetSpeed){
+            toReturn = Mathf.Clamp(toReturn + accelSpeed * Time.deltaTime, curSpeed, targetSpeed);
+        } else {
+            toReturn = Mathf.Clamp(toReturn - decelSpeed * Time.deltaTime, targetSpeed, curSpeed);
+        }
+        return toReturn;
+    }
+
+    private void checkGravity(){
+        if(!controller.isGrounded){
+            targetMove.y = targetMove.y + (gravity * Time.deltaTime);
+        } else {
+            targetMove.y = 0;
+        }
+    }
+    private void updateRotation(){
         Quaternion orientation = mainCam.transform.rotation;
         Quaternion target = Quaternion.Euler(0, orientation.eulerAngles.y, 0);
         body.transform.rotation = target;
-
-        Vector3 moveDir = body.transform.forward * moveVal.y * moveSpeed + body.transform.right * moveVal.x  * moveSpeed+ body.transform.up * moveVal.z;
-        controller.Move(moveDir * Time.deltaTime);
-        body.transform.position = controller.transform.position;
-
-        if(controller.isGrounded){
-            moveVal.z = 0;
-        }
-
-        curDashTime -= Time.deltaTime;
-        if(curDashTime < 0){
-            curDashTime = 0;
-        }
     }
 
     private void updateStamina(){
@@ -116,13 +158,13 @@ public class PlayerController : Entity{
         if(isSprinting){
             if(this.stamina < sprintStaminaDrainAmount){
                 isSprinting = false;
-                moveSpeed /= sprintModifier;
+                regularMoveSpeed /= sprintModifier;
             }
         }
     }
 
     private void OnMove(InputValue value){
-        moveVal = value.Get<Vector2>();
+        moveVal = value.Get<Vector2>().normalized;
     }
 
     private void OnCameraZoom(InputValue value){
@@ -137,23 +179,23 @@ public class PlayerController : Entity{
     }
 
     private void OnDash(InputValue value){
-        if(curDashTime != 0){
+        if(lastDash - Time.time < DashCooldownTime){
             return;
         }
         if(stamina < DashStaminaUse){
             return;
         }
-        Vector3 moveDir = body.transform.forward * moveVal.y * DashDistance + body.transform.right * moveVal.x  * DashDistance + body.transform.up * moveVal.z;
+        Vector3 moveDir = body.transform.forward * moveVal.y * DashDistance + body.transform.right * moveVal.x  * DashDistance + body.transform.up * targetMove.y;
         controller.Move(moveDir);
-        curDashTime = DashCooldownTime;
+        lastDash = Time.time;
         SpendStamina(DashStaminaUse);
     }
     
     private void OnSprint(InputValue value){
         if(!value.isPressed && isSprinting){
-            moveSpeed /= sprintModifier;
+            curMaxSpeed = regularMoveSpeed;
         } else if(value.isPressed && !isSprinting) {
-            moveSpeed *= sprintModifier;
+            curMaxSpeed = regularMoveSpeed * sprintModifier;
         }
         isSprinting = value.isPressed;
     }
