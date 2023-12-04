@@ -29,6 +29,25 @@ public abstract class Entity : MonoBehaviour{
             Debug.LogError(this.name + " could not find the SaW LookUpTable");
         }
     }
+
+    public int getHealth(){
+        return health;
+    }
+    public int getMaxHealth(){
+        return maxHealth;
+    }
+    public int getStamina(){
+        return stamina;
+    }
+    public int getMaxStamina(){
+        return maxStamina;
+    }
+    public float getMana(){
+        return mana;
+    }
+    public float getMaxMana(){
+        return maxMana;
+    }
     public override string ToString(){
         string end = string.Format("{1}/{2} hp\n{3}/{4} sp\n{5:0.##}/{6} mp\n", health, maxHealth, stamina, maxStamina, mana, maxMana);
         return end;

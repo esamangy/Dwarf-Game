@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using Cinemachine;
 using System;
+using UnityEngine.Events;
 
 public class PlayerController : Entity{
     //References----------------------------
@@ -9,6 +10,7 @@ public class PlayerController : Entity{
     [SerializeField] private GameObject body;
     private CharacterController controller;
     [SerializeField] private PlayerInventory inventory;
+    [SerializeField] private PlayerHUD hud;
     //Camera--------------------------------
     [Header("Camera")]
     [SerializeField] private Camera mainCam;
@@ -47,10 +49,12 @@ public class PlayerController : Entity{
     [SerializeField] private float manaRegenspeed;
     [SerializeField] private float manaRegenDelay;
     private float lastManaUse;
-    //Mana----------------------------------
+    //Gameplay----------------------------------
     [Header("Gameplay")]
     [SerializeField] private float reachDistance;
-    
+    //events----------------------------------
+    [Header("Events")]
+    public UnityEvent statusChanged;
 
     public override void Awake(){
         base.Awake();
@@ -58,6 +62,8 @@ public class PlayerController : Entity{
         targetMove = new Vector3();
         lastDash = Time.time;
         curMaxSpeed = regularMoveSpeed;
+
+        statusChanged = new UnityEvent();
     }
     void Start(){
         controller = GetComponent<CharacterController>();
@@ -193,9 +199,11 @@ public class PlayerController : Entity{
 
     private void OnPrimary(InputValue value){
         Debug.Log("Primary");
+        Hurt(5);
     }
     private void OnSecondary(InputValue value){
         Debug.Log("Secondary");
+        Heal(5);
     }
 
     private void updateMana(){
@@ -237,15 +245,21 @@ public class PlayerController : Entity{
         }
     }
 
+    public PlayerHUD getPlayerHUD(){
+        return hud;
+    }
+
     //entity implementation
     public override void Hurt(int damage){
         health -= damage;
+        statusChanged.Invoke();
     }
     public override void Heal(int amount){
         this.health += amount;
         if(this.health > maxHealth){
             this.health = maxHealth;
         }
+        statusChanged.Invoke();
     }
     public override void SpendMana(float amount){
         lastManaUse = Time.time;
@@ -256,6 +270,7 @@ public class PlayerController : Entity{
         if(this.mana > maxMana){
             this.mana = maxMana;
         }
+        statusChanged.Invoke();
     }
     public override void SpendStamina(int amount){
         lastStaminaUse = Time.time;
@@ -266,6 +281,7 @@ public class PlayerController : Entity{
         if(this.stamina > maxStamina){
             this.stamina = maxStamina;
         }
+        statusChanged.Invoke();
     }
 
     public override string ToString(){
