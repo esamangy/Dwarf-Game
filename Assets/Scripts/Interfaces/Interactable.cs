@@ -8,7 +8,7 @@ public abstract class Interactable : MonoBehaviour{
     [SerializeField] protected string hoverText;
     private bool highlight = false;
     public abstract void interact();
-    private GameObject hoverTextObject;
+    private PlayerController player;
 
     public virtual void Awake(){
         outline = GetComponent<Outline>();
@@ -16,7 +16,7 @@ public abstract class Interactable : MonoBehaviour{
             gameObject.AddComponent<Outline>();
         }
         outline.enabled = false;
-        hoverTextObject = GameObject.Find("Interact Hover");
+        player = GameObject.FindWithTag("Player").GetComponent<PlayerController>();
     }
 
     public virtual void Update(){
@@ -26,6 +26,16 @@ public abstract class Interactable : MonoBehaviour{
 
     public virtual void Highlight(){
         highlight = true;
-        hoverTextObject.GetComponent<HoverTextController>().UpdateText(hoverText);
+        player.getPlayerHUD().hoverText = this.hoverText;
+        player.statusChanged.Invoke();
+        StartCoroutine(returnToBlank());
+    }
+
+    private IEnumerator returnToBlank(){
+        while(highlight){
+            yield return null;
+        }
+        player.getPlayerHUD().hoverText = "";
+        player.statusChanged.Invoke();
     }
 }

@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Cinemachine;
-using Unity.VisualScripting;
 using System;
+using UnityEngine.Events;
 
 public class PlayerController : Entity{
     //References----------------------------
@@ -10,6 +10,7 @@ public class PlayerController : Entity{
     [SerializeField] private GameObject body;
     private CharacterController controller;
     [SerializeField] private PlayerInventory inventory;
+    [SerializeField] private PlayerHUD hud;
     //Camera--------------------------------
     [Header("Camera")]
     [SerializeField] private Camera mainCam;
@@ -20,8 +21,12 @@ public class PlayerController : Entity{
     [SerializeField] private Vector2 minAndMaxZoom;
     //Movement------------------------------
     [Header("Movement")]
-    [SerializeField] private float moveSpeed;
-    private Vector3 moveVal;
+    [SerializeField] private float regularMoveSpeed;
+    [SerializeField] private float accelSpeed;
+    [SerializeField] private float decelSpeed;
+    private float curMaxSpeed;
+    private Vector3 targetMove;
+    private Vector2 moveVal;
     private bool isSprinting = false;
     [SerializeField] private float sprintModifier;
     [SerializeField] private float sprintStaminaDrainDuration;
@@ -35,23 +40,30 @@ public class PlayerController : Entity{
     private float timeSprinting;
     private float gravity = -9.8f;
     [SerializeField] private float DashCooldownTime;
-    private float curDashTime = 0;
+    private float lastDash;
     [SerializeField] private float DashDistance;
     [SerializeField] private int DashStaminaUse;
     //Mana----------------------------------
     [Header("Mana")]
-    [Tooltip("The amount of stamina regained per second")]
+    [Tooltip("The amount of mana regained per second")]
     [SerializeField] private float manaRegenspeed;
     [SerializeField] private float manaRegenDelay;
     private float lastManaUse;
-    //Mana----------------------------------
+    //Gameplay----------------------------------
     [Header("Gameplay")]
     [SerializeField] private float reachDistance;
-    
+    //events----------------------------------
+    [Header("Events")]
+    public UnityEvent statusChanged;
 
     public override void Awake(){
         base.Awake();
         Cursor.lockState = CursorLockMode.Locked;
+        targetMove = new Vector3();
+        lastDash = Time.time;
+        curMaxSpeed = regularMoveSpeed;
+
+        statusChanged = new UnityEvent();
     }
     void Start(){
         controller = GetComponent<CharacterController>();
@@ -66,25 +78,49 @@ public class PlayerController : Entity{
     }
 
     private void Movement(){
-        if(!controller.isGrounded){
-            moveVal.z = moveVal.z + (gravity * Time.deltaTime);
+        updateRotation();
+        checkGravity();
+        if(moveVal.x == 0){
+            targetMove.x = moveLerp(targetMove.x, 0f);
+        } else  if(moveVal.x > 0){
+            targetMove.x = moveLerp(targetMove.x, curMaxSpeed);
+        } else {
+            targetMove.x = moveLerp(targetMove.x, -curMaxSpeed);
         }
+        if(moveVal.y == 0){
+            targetMove.z = moveLerp(targetMove.z, 0f);
+        } else  if(moveVal.y > 0){
+            targetMove.z = moveLerp(targetMove.z, curMaxSpeed);
+        } else {
+            targetMove.z = moveLerp(targetMove.z, -curMaxSpeed);
+        }  
+         
+        Vector3 moveDir = body.transform.forward * targetMove.z + body.transform.right * targetMove.x + body.transform.up * targetMove.y;
+        controller.Move(moveDir * Time.deltaTime);
+        body.transform.position = controller.transform.position;
+    }
+
+    private float moveLerp(float curSpeed, float targetSpeed){
+        float toReturn = curSpeed;
+        if(curSpeed < targetSpeed){
+            toReturn = Mathf.Clamp(toReturn + accelSpeed * Time.deltaTime, curSpeed, targetSpeed);
+        } else {
+            toReturn = Mathf.Clamp(toReturn - decelSpeed * Time.deltaTime, targetSpeed, curSpeed);
+        }
+        return toReturn;
+    }
+
+    private void checkGravity(){
+        if(!controller.isGrounded){
+            targetMove.y = targetMove.y + (gravity * Time.deltaTime);
+        } else {
+            targetMove.y = 0;
+        }
+    }
+    private void updateRotation(){
         Quaternion orientation = mainCam.transform.rotation;
         Quaternion target = Quaternion.Euler(0, orientation.eulerAngles.y, 0);
         body.transform.rotation = target;
-
-        Vector3 moveDir = body.transform.forward * moveVal.y * moveSpeed + body.transform.right * moveVal.x  * moveSpeed+ body.transform.up * moveVal.z;
-        controller.Move(moveDir * Time.deltaTime);
-        body.transform.position = controller.transform.position;
-
-        if(controller.isGrounded){
-            moveVal.z = 0;
-        }
-
-        curDashTime -= Time.deltaTime;
-        if(curDashTime < 0){
-            curDashTime = 0;
-        }
     }
 
     private void updateStamina(){
@@ -116,13 +152,13 @@ public class PlayerController : Entity{
         if(isSprinting){
             if(this.stamina < sprintStaminaDrainAmount){
                 isSprinting = false;
-                moveSpeed /= sprintModifier;
+                regularMoveSpeed /= sprintModifier;
             }
         }
     }
 
     private void OnMove(InputValue value){
-        moveVal = value.Get<Vector2>();
+        moveVal = value.Get<Vector2>().normalized;
     }
 
     private void OnCameraZoom(InputValue value){
@@ -137,32 +173,37 @@ public class PlayerController : Entity{
     }
 
     private void OnDash(InputValue value){
-        if(curDashTime != 0){
+        if(Time.time - lastDash < DashCooldownTime){
+            Debug.Log(Time.time - lastDash);
+            Debug.Log("too soon to dash");
             return;
         }
         if(stamina < DashStaminaUse){
+            Debug.Log("not enough stamina to dash");
             return;
         }
-        Vector3 moveDir = body.transform.forward * moveVal.y * DashDistance + body.transform.right * moveVal.x  * DashDistance + body.transform.up * moveVal.z;
+        Vector3 moveDir = body.transform.forward * moveVal.y * DashDistance + body.transform.right * moveVal.x  * DashDistance + body.transform.up * targetMove.y;
         controller.Move(moveDir);
-        curDashTime = DashCooldownTime;
+        lastDash = Time.time;
         SpendStamina(DashStaminaUse);
     }
     
     private void OnSprint(InputValue value){
         if(!value.isPressed && isSprinting){
-            moveSpeed /= sprintModifier;
+            curMaxSpeed = regularMoveSpeed;
         } else if(value.isPressed && !isSprinting) {
-            moveSpeed *= sprintModifier;
+            curMaxSpeed = regularMoveSpeed * sprintModifier;
         }
         isSprinting = value.isPressed;
     }
 
     private void OnPrimary(InputValue value){
         Debug.Log("Primary");
+        Hurt(5);
     }
     private void OnSecondary(InputValue value){
         Debug.Log("Secondary");
+        Heal(5);
     }
 
     private void updateMana(){
@@ -204,15 +245,21 @@ public class PlayerController : Entity{
         }
     }
 
+    public PlayerHUD getPlayerHUD(){
+        return hud;
+    }
+
     //entity implementation
     public override void Hurt(int damage){
         health -= damage;
+        statusChanged.Invoke();
     }
     public override void Heal(int amount){
         this.health += amount;
         if(this.health > maxHealth){
             this.health = maxHealth;
         }
+        statusChanged.Invoke();
     }
     public override void SpendMana(float amount){
         lastManaUse = Time.time;
@@ -223,6 +270,7 @@ public class PlayerController : Entity{
         if(this.mana > maxMana){
             this.mana = maxMana;
         }
+        statusChanged.Invoke();
     }
     public override void SpendStamina(int amount){
         lastStaminaUse = Time.time;
@@ -233,6 +281,7 @@ public class PlayerController : Entity{
         if(this.stamina > maxStamina){
             this.stamina = maxStamina;
         }
+        statusChanged.Invoke();
     }
 
     public override string ToString(){
